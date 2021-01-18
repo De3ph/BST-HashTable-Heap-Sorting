@@ -1,0 +1,7 @@
+C:\Users\Hamit\Desktop\DataProje\bin\Debug\DataProje.exe.config
+C:\Users\Hamit\Desktop\DataProje\bin\Debug\DataProje.exe
+C:\Users\Hamit\Desktop\DataProje\bin\Debug\DataProje.pdb
+C:\Users\Hamit\Desktop\DataProje\obj\Debug\DataProje.csprojAssemblyReference.cache
+C:\Users\Hamit\Desktop\DataProje\obj\Debug\DataProje.csproj.CoreCompileInputs.cache
+C:\Users\Hamit\Desktop\DataProje\obj\Debug\DataProje.exe
+C:\Users\Hamit\Desktop\DataProje\obj\Debug\DataProje.pdb
