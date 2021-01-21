@@ -32,18 +32,6 @@ namespace DataProje
             }
         }
 
-        static List<Müşteri> müşteriEkle(int müşteriSayısı)
-        {
-            List<Müşteri> müşteriler = new List<Müşteri>();
-
-            for (int i = 0; i < müşteriSayısı; i++)
-            {
-                string saat = rastgele.Next(00, 23) + ":" + rastgele.Next(0, 59);
-                Müşteri temp = new Müşteri(rastgele.Next(1,20), saat);
-                müşteriler.Add(temp);
-            }
-            return müşteriler;
-        }
 
         class Müşteri
         {
@@ -113,22 +101,23 @@ namespace DataProje
                 müşteriler = liste;
             }
             public List<Müşteri> GetMüşteriListesi() { return this.müşteriler; }
+
+            public void AddMüşteri(Müşteri müşteri)
+            {
+                müşteriler.Add(müşteri);
+            }
         }
         class BinarySTree
         {
 
             Node Root;
-            public Node GetRoot()
-            {
-                return Root;
-            }
             int müşteriSayaç = 0;
 
             public BinarySTree()
             {
                 Root = null;
             }
-
+            public Node GetRoot() { return Root; }
             public void Add(Durak durak)
             {
                 if (Root == null)
@@ -216,9 +205,9 @@ namespace DataProje
             {
                 if (root == null)
                     return 0;
-                
+
                 int solDerinlik = Derinlik(root.GetLeft());
-               
+
                 int sağDerinlik = Derinlik(root.GetRight());
 
                 if (solDerinlik > sağDerinlik)
@@ -234,10 +223,7 @@ namespace DataProje
             }
             public void BilgiYaz(Node root)
             {
-                if (root == null)
-                {
-                    return;
-                }
+                if (root == null){return;}
                 else
                 {
                     Console.WriteLine(root.GetData().toString());
@@ -251,13 +237,9 @@ namespace DataProje
                     BilgiYaz(root.GetRight());
                 }
             }
-
             public void IdBul(int ID , Node root)
             {
-                if (root == null)
-                {
-                    return;
-                }
+                if (root == null) { return; }
                 else
                 {
                     List<Müşteri> liste= root.GetMüşteriListesi();
@@ -272,10 +254,99 @@ namespace DataProje
                     IdBul(ID, root.GetRight());
                 }
             }
-        }
+            public void BisikletKirala(string İstasyonİsmi, int ID, Node root)
+            {
+                if (root == null) { return; }
+                if (root.GetData().DurakAdı == İstasyonİsmi)
+                {
+                    if (root.GetData().NormalBisiklet < 1)
+                    {
+                        Console.WriteLine("İstasyonda normal bisiklet yok, kiralama işlemi yapılamaz.");
+                    }
+                    else
+                    {
+                        string kiralamaSaati = rastgele.Next(00, 23) + ":" + rastgele.Next(0, 59);
+                        Müşteri tempMüşteri = new Müşteri(ID, kiralamaSaati);
+                        root.GetData().NormalBisiklet -= 1;
+                        root.GetData().BoşPark += 1;
+                        root.AddMüşteri(tempMüşteri);
+                    }
+                    return;
+                }
+                else
+                {
+                    BisikletKirala(İstasyonİsmi, ID, root.GetLeft());
+                    BisikletKirala(İstasyonİsmi, ID, root.GetRight());
+                }
 
+            }
+
+        }
+        class HashTablo
+        {
+            Durak[] HashTable;
+            int boyut;
+
+            public HashTablo(int boyut)
+            {
+                HashTable = new Durak[boyut];
+                this.boyut = boyut;
+            }
+
+            int HashKoduOluştur(string key)
+            {
+                int temp = 0;
+                foreach (var harf in key)
+                {
+                    temp += Convert.ToInt32(harf);
+                }
+
+                return temp % boyut;
+            }
+
+            public void Add(Durak durak)
+            {
+                int hashKodu = HashKoduOluştur(durak.DurakAdı);
+
+                switch (HashTable[hashKodu] == null)
+                {
+                    case true:
+                        if (HashTable[hashKodu] != null)
+                        {
+                            goto case false;
+                        }
+                        HashTable[hashKodu] = durak;
+                        break;
+                    case false:
+                        hashKodu += 1;
+                        goto case true;
+                }
+            }
+
+            public void Update(Durak durak)
+            {
+                int hashKodu = HashKoduOluştur(durak.DurakAdı);
+
+                switch (HashTable[hashKodu].DurakAdı == durak.DurakAdı)
+                {
+                    case true:
+                        if (HashTable[hashKodu].DurakAdı != durak.DurakAdı)
+                        {
+                            goto case false;
+                        }
+
+                        HashTable[hashKodu].NormalBisiklet += 5;
+                        break;
+                    case false:
+                        hashKodu += 1;
+                        goto case true;
+                }
+
+            }
+        }
         static void Main(string[] args)
         {
+            // CompareTo metodunda ASCII tablosu ile karşılaştırma yapıldığı için durak isimlerinde Türkçe karakter kullanmadım.
             string[] duraklarString =
                 {"Inciralti,28,2,10",
                 "Sahilevleri,8,1,11",
@@ -289,7 +360,7 @@ namespace DataProje
                 };
 
             Durak[] Duraklar = DurakYap(duraklarString);
-
+            /*
             BinarySTree durakAğacı = new BinarySTree();
 
             for (int i = 0; i < Duraklar.Length; i++)
@@ -303,6 +374,40 @@ namespace DataProje
             int ID = Convert.ToInt32(Console.ReadLine());
             Console.WriteLine("****************************");
             durakAğacı.IdBul(ID,durakAğacı.GetRoot());
+
+            Console.WriteLine("Bisikletin kiralanacağı istasyon ismini yazın (Türkçe karakter kullanmadan):");
+            string istasyonAdı = Console.ReadLine();
+            Console.WriteLine("Bisiklet kiralayacak müşterinin ID sini yazın : ");
+            int kiralamaID = Convert.ToInt32(Console.ReadLine());
+            durakAğacı.BisikletKirala(istasyonAdı, kiralamaID, durakAğacı.GetRoot());
+
+            //kodun doğru çalıştığını kontrol etmek için debug ile bakmak yerine ID bilgisini 20 üstü girip "durakAğacı.IdBul(ID,durakAğacı.GetRoot())" kodunu çalıştırarak bakılabilirs
+            
+
+            /////////////////////////////
+
+            HashTablo tablo = new HashTablo(Duraklar.Length);
+
+            foreach (var item in Duraklar)
+            {
+                tablo.Add(item);
+            }
+
+            foreach (var item in Duraklar)
+            {
+                if (item.BoşPark > 5)
+                {
+                    tablo.Update(item);
+                }
+            }
+            */
+
+            int[] array = { 25, 77, 9, 3, 225, 10, 0 , 167};
+            InsertionSort(array);
+            for (int i = 0; i < array.Length; i++)
+            {
+                Console.WriteLine("Arrayin " + (i + 1) + ". elemanı = " + array[i]);
+            }
 
             Console.ReadLine();
         }
@@ -320,5 +425,39 @@ namespace DataProje
 
             return Duraklar;
         }
+        static List<Müşteri> müşteriEkle(int müşteriSayısı)
+        {
+            List<Müşteri> müşteriler = new List<Müşteri>();
+
+            for (int i = 0; i < müşteriSayısı; i++)
+            {
+                string saat = rastgele.Next(00, 23) + ":" + rastgele.Next(0, 59);
+                Müşteri temp = new Müşteri(rastgele.Next(1, 20), saat);
+                müşteriler.Add(temp);
+            }
+            return müşteriler;
+        }
+
+        static void InsertionSort(int[] array) // metodun parametresi array tipi verileri kabul ediyor 
+        {
+            for (int i = 1; i < array.Length; i++) // dıştaki for döngüsü array in 2. elemanından son elemanına kadar gitmesini sağlıyor, i ye kadar olan kısım sıralı kısım
+            {
+                for (int j = i - 1; j != -1; j--) // içteki for döngüsü ise sıralanmış array kısmı ile dıştaki for ile seçilen elemanın karşılaştırılmasını sağlıyor.
+                {
+
+                    if (array[i] < array[j])
+                    // eğer array deki sağda olan eleman solda olandan daha küçükse (array[i]<array[j]) bunların değerlerini değiştiriyor.
+                    // ve eğer koşul doğruysa soldaki diğer elemanlarla da karşılaştırmak için bir index sola gidiyor (i--)
+                    {
+                        int temp = array[i];
+                        array[i] = array[j];
+                        array[j] = temp;
+                        i--;
+                    }
+                }
+            }
+        }
+
+
     }
 }
