@@ -31,8 +31,6 @@ namespace DataProje
                 return "Durak adı: " + DurakAdı + ", boş park: " + BoşPark + ", tandem bisiklet: " + TandemBisiklet + ", normal bisiklet: " + NormalBisiklet;
             }
         }
-
-
         class Müşteri
         {
             int ID;
@@ -330,6 +328,9 @@ namespace DataProje
                 switch (HashTable[hashKodu].DurakAdı == durak.DurakAdı)
                 {
                     case true:
+                        // eğer elemanların tutulduğu dizide yeri dolu ise bir sonraki boş yere ataması lazım.
+                        // bu if bloğu asıl yeri dolu ise boş yer bulana kadar diziyi gezdiriyor.
+
                         if (HashTable[hashKodu].DurakAdı != durak.DurakAdı)
                         {
                             goto case false;
@@ -344,6 +345,81 @@ namespace DataProje
 
             }
         }
+
+        class Heap
+        {
+            private Node[] nodes;
+            int sıra = 0;
+            public Heap(int boyut)
+            {
+                nodes = new Node[boyut];
+            }
+            public void updateInsert(int index)
+            {
+                int parent = (index - 1) / 2;
+                Node bottom = nodes[index];
+                while (index > 0 &&
+                nodes[parent].GetData().NormalBisiklet < bottom.GetData().NormalBisiklet)
+                {
+                    nodes[index] = nodes[parent]; // aşşağı at
+                    index = parent; // indeksi arttır
+                    parent = (parent - 1) / 2; // bir üst ebeveyni seç
+                } 
+                nodes[index] = bottom;
+            }
+            public void insert(Durak durak)
+            {
+                Node ekle = new Node(durak);
+                nodes[sıra] = ekle;
+                updateInsert(sıra++);
+            }
+            public void updateRemove(int index)
+            {
+                int largerChild;
+                Node top = nodes[index]; 
+                while (index < sıra / 2) 
+                {
+                    int leftChild = 2 * index + 1;
+                    int rightChild = leftChild + 1;
+                    
+                    if (rightChild < sıra && 
+                    nodes[leftChild].GetData().NormalBisiklet <
+                    nodes[rightChild].GetData().NormalBisiklet)
+                            largerChild = rightChild;
+                    else
+                        largerChild = leftChild;
+                    if (top.GetData().NormalBisiklet >= nodes[largerChild].GetData().NormalBisiklet)
+                        break;
+                    nodes[index] = nodes[largerChild];
+                    index = largerChild; 
+                } 
+                nodes[index] = top; 
+            }
+            public void remove() 
+            { 
+                Node root = nodes[0];
+                nodes[0] = nodes[--sıra];
+                nodes[sıra] = null;
+                updateRemove(0); 
+            }  
+            public void Max3()
+            {
+                Node[] max3 = new Node[nodes.Length];
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    max3[i] = nodes[i];
+                }
+                for (int i = 0; i <3; i++)
+                {
+                    Node root = max3[0];
+                    Console.WriteLine(root.GetData().toString());
+                    max3[0] = max3[--sıra];
+                    updateRemove(0);
+                }
+            }
+            
+        }
+
         static void Main(string[] args)
         {
             // CompareTo metodunda ASCII tablosu ile karşılaştırma yapıldığı için durak isimlerinde Türkçe karakter kullanmadım.
@@ -402,12 +478,20 @@ namespace DataProje
             }
             */
 
-            int[] array = { 25, 77, 9, 3, 225, 10, 0 , 167};
-            InsertionSort(array);
-            for (int i = 0; i < array.Length; i++)
+            Heap heap = new Heap(Duraklar.Length);
+            for (int i = 0; i < Duraklar.Length; i++)
             {
-                Console.WriteLine("Arrayin " + (i + 1) + ". elemanı = " + array[i]);
+                heap.insert(Duraklar[i]);
             }
+
+            /*
+            int[] InsertionArray = { 25, 77, 9, 3, 225, 10, 0 , 167};
+            InsertionSort(InsertionArray);
+            for (int i = 0; i < InsertionArray.Length; i++)
+            {
+                Console.WriteLine("Arrayin " + (i + 1) + ". elemanı = " + InsertionArray[i]);
+            }
+            */
 
             Console.ReadLine();
         }
@@ -437,14 +521,12 @@ namespace DataProje
             }
             return müşteriler;
         }
-
-        static void InsertionSort(int[] array) // metodun parametresi array tipi verileri kabul ediyor 
+        static int[] InsertionSort(int[] array) // metodun parametresi array tipi verileri kabul ediyor 
         {
             for (int i = 1; i < array.Length; i++) // dıştaki for döngüsü array in 2. elemanından son elemanına kadar gitmesini sağlıyor, i ye kadar olan kısım sıralı kısım
             {
                 for (int j = i - 1; j != -1; j--) // içteki for döngüsü ise sıralanmış array kısmı ile dıştaki for ile seçilen elemanın karşılaştırılmasını sağlıyor.
                 {
-
                     if (array[i] < array[j])
                     // eğer array deki sağda olan eleman solda olandan daha küçükse (array[i]<array[j]) bunların değerlerini değiştiriyor.
                     // ve eğer koşul doğruysa soldaki diğer elemanlarla da karşılaştırmak için bir index sola gidiyor (i--)
@@ -456,8 +538,20 @@ namespace DataProje
                     }
                 }
             }
+            return array;
         }
+        static void RadixSort(int[] array)
+        {
+            string[] newArray = new string[array.Length];
+            string a = array.Max().ToString();
+            int tekrarSayısı = a.Length;
 
 
+            for (int i = 0; i < array.Length; i++)
+            {
+                newArray[i] = array[i].ToString().Insert(0,"0");
+            }
+
+        }   
     }
 }
