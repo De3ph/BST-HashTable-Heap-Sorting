@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,8 +51,6 @@ namespace DataProje
             {
                 return kiralamaSaati;
             }
-
-
             public string toString()
             {
                 return "Müşteri ID: " + ID + ", müşterinin bisiklet kiralama saati: " + kiralamaSaati;
@@ -345,7 +344,6 @@ namespace DataProje
 
             }
         }
-
         class Heap
         {
             private Node[] nodes;
@@ -404,17 +402,28 @@ namespace DataProje
             }  
             public void Max3()
             {
-                Node[] max3 = new Node[nodes.Length];
-                for (int i = 0; i < nodes.Length; i++)
+                Node[] copyNodes = new Node[nodes.Length];
+                nodes.CopyTo(copyNodes,0);
+
+                for (int i = 0; i < 3; i++)
                 {
-                    max3[i] = nodes[i];
-                }
-                for (int i = 0; i <3; i++)
-                {
-                    Node root = max3[0];
-                    Console.WriteLine(root.GetData().toString());
-                    max3[0] = max3[--sıra];
-                    updateRemove(0);
+                    int max = 0;
+                    int maxIndex = 0;
+
+                    for (int j = 0; j < copyNodes.Length; j++)
+                    {
+                        if (copyNodes[j] == null)
+                        {
+                            continue;
+                        }
+                        if (copyNodes[j].GetData().NormalBisiklet > max)
+                        {
+                            max = copyNodes[j].GetData().NormalBisiklet;
+                            maxIndex = j;
+                        }
+                    }
+                    Console.WriteLine(copyNodes[maxIndex].GetData().toString());
+                    copyNodes[maxIndex] = null;
                 }
             }
             
@@ -423,6 +432,7 @@ namespace DataProje
         static void Main(string[] args)
         {
             // CompareTo metodunda ASCII tablosu ile karşılaştırma yapıldığı için durak isimlerinde Türkçe karakter kullanmadım.
+            
             string[] duraklarString =
                 {"Inciralti,28,2,10",
                 "Sahilevleri,8,1,11",
@@ -436,13 +446,15 @@ namespace DataProje
                 };
 
             Durak[] Duraklar = DurakYap(duraklarString);
-            /*
+            
             BinarySTree durakAğacı = new BinarySTree();
 
             for (int i = 0; i < Duraklar.Length; i++)
             {
                 durakAğacı.Add(Duraklar[i]);
             }
+
+            Console.WriteLine("Ağacın derinliği : " + durakAğacı.Derinlik(durakAğacı.GetRoot()));
             durakAğacı.MüşteriSayısı();
             durakAğacı.BilgiYaz(durakAğacı.GetRoot());
 
@@ -457,11 +469,8 @@ namespace DataProje
             int kiralamaID = Convert.ToInt32(Console.ReadLine());
             durakAğacı.BisikletKirala(istasyonAdı, kiralamaID, durakAğacı.GetRoot());
 
-            //kodun doğru çalıştığını kontrol etmek için debug ile bakmak yerine ID bilgisini 20 üstü girip "durakAğacı.IdBul(ID,durakAğacı.GetRoot())" kodunu çalıştırarak bakılabilirs
+            //kodun doğru çalıştığını kontrol etmek için debug ile bakmak yerine ID bilgisini 20 üstü girip "durakAğacı.IdBul(ID,durakAğacı.GetRoot())" kodunu çalıştırarak bakılabilir
             
-
-            /////////////////////////////
-
             HashTablo tablo = new HashTablo(Duraklar.Length);
 
             foreach (var item in Duraklar)
@@ -476,7 +485,6 @@ namespace DataProje
                     tablo.Update(item);
                 }
             }
-            */
 
             Heap heap = new Heap(Duraklar.Length);
             for (int i = 0; i < Duraklar.Length; i++)
@@ -484,14 +492,23 @@ namespace DataProje
                 heap.insert(Duraklar[i]);
             }
 
-            /*
+            heap.Max3();
+
             int[] InsertionArray = { 25, 77, 9, 3, 225, 10, 0 , 167};
             InsertionSort(InsertionArray);
             for (int i = 0; i < InsertionArray.Length; i++)
             {
                 Console.WriteLine("Arrayin " + (i + 1) + ". elemanı = " + InsertionArray[i]);
             }
-            */
+
+            Console.WriteLine("-------------------------------------");
+
+            int[] QuickArray = { 25, 77, 53, 45, 22, 10, 38, 67 };
+            QuickSort(QuickArray ,0 , QuickArray.Length - 1);
+            for (int i = 0; i < QuickArray.Length; i++)
+            {
+                Console.WriteLine("Arrayin " + (i + 1) + ". elemanı = " + QuickArray[i]);
+            }
 
             Console.ReadLine();
         }
@@ -540,18 +557,44 @@ namespace DataProje
             }
             return array;
         }
-        static void RadixSort(int[] array)
+        static int[] QuickSort(int[] arr, int baş, int son)
         {
-            string[] newArray = new string[array.Length];
-            string a = array.Max().ToString();
-            int tekrarSayısı = a.Length;
-
-
-            for (int i = 0; i < array.Length; i++)
+            void swap(int[] items, int x, int y)
             {
-                newArray[i] = array[i].ToString().Insert(0,"0");
+                int temp = items[x];
+                items[x] = items[y];
+                items[y] = temp;
             }
 
-        }   
+            int pivot = arr[(baş + (son - baş) / 2)];
+            int sol = baş;
+            int sağ = son;
+            while (sol <= sağ)
+            {
+                while (arr[sol] < pivot)
+                {
+                    sol++;
+                }
+                while (arr[sağ] > pivot)
+                {
+                    sağ--;
+                }
+                if (sol <= sağ)
+                {
+                    swap(arr, sol, sağ);
+                    sol++;
+                    sağ--;
+                }
+            }
+            if (baş < sağ)
+            {
+                QuickSort(arr, baş, sol - 1); //sol kısmı tekrar QuickSort
+            }
+            if (son > sol)
+            {
+                QuickSort(arr, sağ + 1, son); //sağ kısmı tekrar QuickSort
+            }
+            return arr;
+        }
     }
 }
