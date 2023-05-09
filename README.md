@@ -6,4 +6,4 @@
 * Binary Search Tree
 * Hash Table
 * Heap
-* Sorting Algorithms
+* Sorting Algorithms (Quick Sort, Insertion Sort)
